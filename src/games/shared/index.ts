@@ -2,7 +2,7 @@ export type {
   GameEngine,
   GameResult,
   GameState,
-  GameStatus,
   Player,
   PlayerAction,
+  PlayerStatus,
 } from './gameTypes';

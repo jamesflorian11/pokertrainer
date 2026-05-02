@@ -1,32 +1,47 @@
 /**
- * Training / coaching domain — game-agnostic event stream and analysis hooks.
+ * Training / coaching domain — game-agnostic analysis hooks (no poker rules).
  */
 
+import type { GameState, PlayerAction } from '@/games/shared';
+
+/** Severity used for both mistakes and feedback. */
+export type TrainingSeverity = 'low' | 'medium' | 'high';
+
+/**
+ * Examples: `action_taken`, `mistake_detected`, `hint_shown`, `feedback_generated`.
+ */
 export interface TrainingEvent {
   id: string;
   type: string;
+  playerId: string;
+  gameStateSnapshot: Partial<GameState>;
+  action: PlayerAction;
   timestamp: number;
-  context: Record<string, unknown>;
 }
-
-export type MistakeSeverity = 'info' | 'low' | 'medium' | 'high' | string;
 
 export interface Mistake {
   id: string;
-  severity: MistakeSeverity;
-  category: string;
-  details: string;
-  relatedEventId?: string;
+  /** Coaching topic, e.g. "pot_odds", "position" — game-specific strings allowed. */
+  concept: string;
+  severity: TrainingSeverity;
+  description: string;
+  expectedAction?: PlayerAction;
+  actualAction: PlayerAction;
 }
 
 export interface Feedback {
-  id: string;
   message: string;
-  tags?: string[];
-  metadata?: Record<string, unknown>;
+  suggestion: string;
+  relatedConcept: string;
+  severity: TrainingSeverity;
 }
 
 export interface TrainingAnalyzer {
-  analyze(events: TrainingEvent[]): Mistake[];
-  buildFeedback?(mistakes: Mistake[]): Feedback;
+  analyzeAction(
+    state: GameState,
+    action: PlayerAction,
+  ): {
+    mistakes: Mistake[];
+    feedback: Feedback[];
+  };
 }

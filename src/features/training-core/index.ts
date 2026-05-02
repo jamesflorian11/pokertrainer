@@ -1,7 +1,7 @@
 export type {
   Feedback,
   Mistake,
-  MistakeSeverity,
   TrainingAnalyzer,
   TrainingEvent,
+  TrainingSeverity,
 } from './trainingTypes';

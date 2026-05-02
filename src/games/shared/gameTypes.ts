@@ -1,39 +1,54 @@
 /**
- * Shared contracts for any skill-based game engine (not poker-specific).
+ * Shared contracts for any skill-based turn-based game engine (not poker-specific).
+ *
+ * Immutability: `applyAction` must return a new `GameState` and append the executed
+ * `PlayerAction` to `history` so sessions, replay, and training see a single source of truth.
  */
 
-export type GameStatus = 'idle' | 'running' | 'paused' | 'finished' | string;
+export type PlayerStatus =
+  | 'active'
+  | 'folded'
+  | 'eliminated'
+  | 'spectating';
 
 export interface GameState {
-  status: GameStatus;
-  phase: string | number;
+  id: string;
+  players: Player[];
+  currentPlayerId: string;
+  /** Game-specific phase label (each game may document its own phase strings). */
+  phase: string;
   metadata: Record<string, unknown>;
+  history: PlayerAction[];
 }
 
+/**
+ * `score` is a generic resource (e.g. chip count in betting games, points elsewhere).
+ */
 export interface Player {
   id: string;
-  displayName: string;
-  seatIndex?: number;
-  metadata?: Record<string, unknown>;
+  name: string;
+  score: number;
+  status: PlayerStatus;
 }
 
 export interface PlayerAction {
-  playerId: string;
   type: string;
-  payload?: unknown;
+  playerId: string;
+  payload: Record<string, unknown>;
   timestamp: number;
 }
 
 export interface GameResult {
-  winnerIds: string[];
-  scores?: Record<string, number>;
-  metadata?: Record<string, unknown>;
+  winners: string[];
+  /** Optional per-player placement (e.g. playerId -> rank, lower is better). */
+  rankings?: Record<string, number>;
+  summary: string | Record<string, unknown>;
 }
 
 export interface GameEngine {
-  reset(seed?: string): void;
-  applyAction(action: PlayerAction): GameState;
-  getState(): GameState;
-  /** Optional hook when a terminal state is reached */
-  getResult?(): GameResult | null;
+  initializeGame(players: Player[]): GameState;
+  getAvailableActions(state: GameState, playerId: string): PlayerAction[];
+  applyAction(state: GameState, action: PlayerAction): GameState;
+  isGameOver(state: GameState): boolean;
+  getResult(state: GameState): GameResult | null;
 }
