@@ -1,0 +1,22 @@
+-- PostgreSQL design sketch (not applied at runtime yet).
+--
+-- users
+--   id UUID PRIMARY KEY
+--   display_name TEXT NOT NULL
+--   skill_level TEXT
+--   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+--
+-- game_sessions
+--   id UUID PRIMARY KEY
+--   user_id UUID REFERENCES users (id)
+--   game_id TEXT NOT NULL
+--   payload JSONB NOT NULL
+--   started_at TIMESTAMPTZ NOT NULL
+--   ended_at TIMESTAMPTZ
+--
+-- training_events
+--   id UUID PRIMARY KEY
+--   session_id UUID REFERENCES game_sessions (id)
+--   type TEXT NOT NULL
+--   context JSONB NOT NULL
+--   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
